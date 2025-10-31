@@ -1,0 +1,4 @@
+
+My data model differs from the AI-generated one because I added a little more detail and functionality including explicit role and media tables,likes,dislikes, and clearer field names.
+I preferred that my version seperates user roles and connects post/comments explicitly, which makes moderation easier. I liked that the AI code was cleaner, and utilized Django conventions better.
+However, it missed features such as post statistics, and explicit media content fields which is important for restrictions. Overall, the AI model was very clean and concise, although my code was a little more specific and detailed.
