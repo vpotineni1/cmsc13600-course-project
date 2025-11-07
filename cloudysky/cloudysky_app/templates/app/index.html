@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cloudysky: Vishal Potineni</title>
+    <style>
+        p {text-align:center;}
+        .user {}
+    </style>
+</head>
+
+<body>
+    <h2 style="text-align:center;"> About Me</h2>
+    <p>My name is Vishal Potineni, and I am a fourth-year economics and data science major at the University of Chicago. This is a project called CloudySky for my introduction to data engineering class. </p>
+
+    <p>
+        {% if user.is_authenticated %}  
+            Welcome: <span class = "User"><b>{{user.username}}</b></span>
+        {% else %}
+            <b>No user logged in.</b>
+        {% endif %}
+    </p>
+
+    <h3 style="text-align:center;">Current Time</h3>
+    <p>{{current_time}}</p>
+
+</body>
+
+</html>
