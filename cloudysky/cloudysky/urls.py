@@ -21,7 +21,7 @@ from cloudysky_app import views as app_views
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("app/", include('cloudysky_app.urls')),
-    path('', app_views.root_redirect, name = 'root_redirect'),
+    path("", include("cloudysky_app.urls")),
     path('accounts/login/', app_views.login_new, name = 'login'),
     path('index.html',app_views.index, name ='index.html'),
 
