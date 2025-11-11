@@ -3,14 +3,14 @@ from django.shortcuts import render
 # Create your views here.
 
 from django.http import HttpResponse, HttpResponseNotAllowed
+from django.http import JsonResponse
 from zoneinfo import ZoneInfo
 import datetime
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User as AuthUser
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import redirect
 from django.contrib.auth import authenticate, login
-from .models import Post, Comments, Media, User as AppUser
-
+from .models import Role, Post, Comments, Media, User as AppUser
 
 def time_central(request):
     if request.method == "GET": 
@@ -34,19 +34,23 @@ def new(request):
         return HttpResponseNotAllowed(["GET"])
     return render(request, "app/new.html")
 
+def get_app_user(django_user):
+    app_user, _ = AppUser.objects.get_or_create(user=django_user)
+    return app_user
+
 @csrf_exempt
 def createUser(request):
     if request.method != "POST":
         return HttpResponseNotAllowed(["POST"])
     email = request.POST.get("email", "")
-    username = request.POST.get("username", "")
+    username = request.POST.get("username", "") or request.POST.get("user_name") or ""
     password = request.POST.get("password", "")
     is_admin = request.POST.get("is_admin", "0")
 
-    if User.objects.filter(email = email).exists():
+    if AuthUser.objects.filter(email = email).exists():
         return HttpResponse("Error: Email in Use", status = 400)
     
-    user = User.objects.create_user(username=username, email=email, password=password)
+    user = AuthUser.objects.create_user(username=username, email=email, password=password)
     if is_admin == '1':
         user.is_staff = True
         user.is_superuser = True
@@ -56,7 +60,7 @@ def createUser(request):
 @csrf_exempt
 def login_new(request):
     if request.method == "POST":
-        username = request.POST.get("username", "")
+        username = request.POST.get("username", "") or request.POST.get("user_name") or ""
         password = request.POST.get("password", "")
         user = authenticate(request, username=username, password=password)
         if user is not None:
@@ -86,10 +90,13 @@ def createPost(request):
         return HttpResponse("Unauthorized", status = 401)
     if request.method != "POST":
         return HttpResponseNotAllowed(["POST"])
+    
     content = request.POST.get("content", "")
     title = request.POST.get("title", "")
     media = Media.objects.create(title = title, content_text = content)
-    Post.objects.create(content_id = media, creator = request.user)
+    author = get_app_user(request.user)
+    
+    Post.objects.create(content_id = media, creator = author)
     return HttpResponse("Posted", status = 201)
 
 @csrf_exempt
@@ -98,10 +105,14 @@ def createComment(request):
         return HttpResponse("Unauthorized", status = 401)
     if request.method != "POST":
         return HttpResponseNotAllowed(["POST"])
+    
     post_id = request.POST.get("post_id", "")
     content = request.POST.get("content", "")
     post = Post.objects.get(pk=post_id)
-    Comments.objects.create(post_id = post, creator = request.user, comment_content=content)
+    author = get_app_user(request.user)
+    
+    Comments.objects.create(post_id = post, creator = author, comment_content=content)
+    
     return HttpResponse("Posted", status = 201)
 
 @csrf_exempt
@@ -120,10 +131,10 @@ def hideComment(request):
 
 @csrf_exempt
 def hidePost(request):
-    if not request.user.is_authenticated or not request.user.is_staff:
-        return HttpResponse("Unauthorized", status = 401)
     if request.method != "POST":
         return HttpResponseNotAllowed(["POST"])
+    if not request.user.is_authenticated or not request.user.is_staff:
+        return HttpResponse("Unauthorized", status = 401)
     post_id = request.POST.get("post_id", "")
     post_reason = request.POST.get("reason", "")
     post = Post.objects.get(pk = post_id)
@@ -131,3 +142,46 @@ def hidePost(request):
     post.censored_reason = post_reason
     post.save()
     return HttpResponse("Hidden", status = 200)
+
+@csrf_exempt
+def dumpFeed(request):
+    if request.method != "GET":
+        return HttpResponseNotAllowed(["GET"])
+    if not request.user.is_authenticated:
+        return HttpResponse("Unauthorized", status = 401)
+    
+    posts = Post.objects.all().order_by("post_id")
+    obj = []
+    for post in posts:
+        username = post.creator.user.username
+    
+        media_obj = post.content_id  
+        title = media_obj.title
+        text  = media_obj.content_text
+
+        post_comments = (Comments.objects.filter(post_id=post.post_id).order_by("comment_id"))
+
+        comments_data = []
+        for comment in post_comments:
+            try:
+                creator_name = comment.creator.user.username
+            except Exception:
+                creator_name = None
+
+            comments_data.append({
+                "id": comment.comment_id,
+                "content": comment.comment_content,
+                "creator": creator_name,
+                "time": comment.add_time.strftime("%Y-%m-%d %H:%M"),
+            })
+
+        obj.append({
+            "id": post.post_id,
+            "username": username,
+            "date": post.add_time.strftime("%Y-%m-%d %H:%M"),
+            "title": title,
+            "text": text,
+            "comments": comments_data,
+            })
+    return JsonResponse(obj, safe=False)
+
