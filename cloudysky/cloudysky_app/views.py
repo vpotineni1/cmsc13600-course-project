@@ -185,3 +185,39 @@ def dumpFeed(request):
             })
     return JsonResponse(obj, safe=False)
 
+@csrf_exempt
+def feed(request):
+    if request.method != "GET":
+        return HttpResponseNotAllowed(["GET"])
+    if not request.user.is_authenticated:
+        return HttpResponse("Unauthorized", status = 401)
+    
+    app_user = get_app_user(request.user)
+    posts = Post.objects.all().order_by("post_id")
+    obj = []
+
+    for post in posts:
+        username = post.creator.user.username
+        if post.censored:
+            if request.user.is_staff:
+                pass
+            elif post.creator == app_user:
+                pass 
+            else:
+                continue
+
+        media_obj = post.content_id 
+        text  = media_obj.content_text
+        truncated = text[:100] + ("..." if len(text) > 100 else "")
+
+
+        obj.append({
+            "id": post.post_id,
+            "username": username,
+            "date": post.add_time.strftime("%Y-%m-%d %H:%M"),
+            "title": media_obj.title,
+            "Preview": truncated,
+            })
+    return JsonResponse(obj, safe=False)
+
+        

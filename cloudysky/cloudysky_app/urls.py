@@ -22,6 +22,7 @@ urlpatterns = [
     path("hidePost", views.hidePost, name = 'hide_post'),
     path("dumpFeed/", views.dumpFeed, name = 'dumpFeed'),
     path("dumpFeed", views.dumpFeed, name = 'dumpFeed'),
+    path("feed", views.feed, name = 'feed'),
 ]
 
 
