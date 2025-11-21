@@ -1,0 +1,13 @@
+The first step was to load the PUZZLE and PUZZLE-EASY text into python, and also load the word list on my local 
+    First, I wanted to crack the easy puzzle to ensure I had the problem-solving process correct
+    For each guessed word, I tried all possible 4-digit numbers, computing sha256(key + word) and checking whether the resulting hash appeared in PUZZLE-EASY. This process revealed that the correct 4-digit key was 5262.
+    Once the key was found, I decrypted the easy puzzle by hashing the key combined with every word 
+    For the easy puzzle, I had 21 words that could not be cracked. I looked up the text online, found that it was from The Princess Bride. I compared the words missing from my text (21 words) to the original text, and found the specific 21 words that were missing.
+    To identify the misspelled word, I brute-forced the hash of key + word for each of the 21 missing words and checked which hashes appeared in Puzzle-Easy.
+    I found that ‘extraordinary’ was the hash missing, so determined that this word was the one misspelled
+    I then created a function to find the different permutations of the word extraordinary with edit distance 2, and checked which variant produced a hash found in the file. This was determined to be the misspelled word.
+Followed the same process for the actual puzzle, I had to modify the code so it had the same format for the much longer number for the Puzzle (4 digits to 9 digits)
+    Found the key using common words like in the easy puzzle
+    Same process to find the misspelled word as detailed above
+The tools that I used to find the message were a local word list file, online search to identify the original text, and also google search to better understand the process of decryption 
+This whole process took around 2.5 hours
