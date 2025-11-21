@@ -221,3 +221,58 @@ def feed(request):
     return JsonResponse(obj, safe=False)
 
         
+@csrf_exempt
+def post_id(request, post_id):
+    if request.method != "GET":
+        return HttpResponseNotAllowed(["GET"])
+    if not request.user.is_authenticated:
+        return HttpResponse("Unauthorized", status = 401)
+    
+    app_user = get_app_user(request.user)
+
+    try:
+        post = Post.objects.get(pk=post_id)
+    except Post.DoesNotExist:
+        return HttpResponse("Post not found", status=404)
+
+
+    if post.censored:
+        if request.user.is_staff:
+            pass
+        elif post.creator == app_user:
+            pass 
+        else:
+            return HttpResponse("Post not found", status=404)
+        
+    media_obj = post.content_id 
+    text  = media_obj.content_text
+    
+    posts = ({
+        "id": post.post_id,
+        "username": post.creator.user.username,
+        "date": post.add_time.strftime("%Y-%m-%d %H:%M"),
+        "title": media_obj.title,
+        "Text": text,
+    })
+
+    comments = (Comments.objects.filter(post_id=post.post_id).order_by("comment_id"))
+    obj = []
+
+    for comment in comments:
+        if comment.censored:
+            if request.user.is_staff:
+                content = comment.comment_content
+            elif comment.creator == app_user:
+                content = comment.comment_content
+            else:
+                content = "This comment has been removed"
+        else:
+            content = comment.comment_content
+            
+        obj.append({
+            "id": comment.comment_id,
+            "Comment_Creator": comment.creator.user.username,
+            "date": comment.add_time.strftime("%Y-%m-%d %H:%M"),
+            "Comment_Content": content,
+        })
+    return JsonResponse({"post": posts, "comments": obj,})

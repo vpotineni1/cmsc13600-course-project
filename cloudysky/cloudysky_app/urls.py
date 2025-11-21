@@ -23,6 +23,7 @@ urlpatterns = [
     path("dumpFeed/", views.dumpFeed, name = 'dumpFeed'),
     path("dumpFeed", views.dumpFeed, name = 'dumpFeed'),
     path("feed", views.feed, name = 'feed'),
+    path("post/<int:post_id>", views.post_id, name = 'post_id'),
 ]
 
 
