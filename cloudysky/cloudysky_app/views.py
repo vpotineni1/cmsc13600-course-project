@@ -150,11 +150,22 @@ def dumpFeed(request):
     if not request.user.is_authenticated:
         return HttpResponse("Unauthorized", status = 401)
     
+    app_user = get_app_user(request.user)
+    is_staff = request.user.is_staff
+    
     posts = Post.objects.all().order_by("post_id")
     obj = []
     for post in posts:
+        if post.censored:
+            if is_staff:
+                pass
+            elif post.creator == app_user:
+                pass 
+            else:
+                continue
+
         username = post.creator.user.username
-    
+
         media_obj = post.content_id  
         title = media_obj.title
         text  = media_obj.content_text
@@ -163,16 +174,22 @@ def dumpFeed(request):
 
         comments_data = []
         for comment in post_comments:
-            try:
-                creator_name = comment.creator.user.username
-            except Exception:
-                creator_name = None
+            if comment.censored:
+                if request.user.is_staff:
+                    content = comment.comment_content
+                elif comment.creator == app_user:
+                    content = comment.comment_content
+                else:
+                    content = "This comment has been removed"
+            else:
+                content = comment.comment_content
 
             comments_data.append({
                 "id": comment.comment_id,
-                "content": comment.comment_content,
-                "creator": creator_name,
+                "content": content
+                "creator": comment.creator.user.username,
                 "time": comment.add_time.strftime("%Y-%m-%d %H:%M"),
+                "Comment_Content": content,
             })
 
         obj.append({
