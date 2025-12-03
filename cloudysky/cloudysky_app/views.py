@@ -186,7 +186,7 @@ def dumpFeed(request):
 
             comments_data.append({
                 "id": comment.comment_id,
-                "content": content
+                "content": content,
                 "creator": comment.creator.user.username,
                 "time": comment.add_time.strftime("%Y-%m-%d %H:%M"),
                 "Comment_Content": content,
