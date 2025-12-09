@@ -110,17 +110,18 @@ def createComment(request):
     content = request.POST.get("content", "")
     post = Post.objects.get(pk=post_id)
     author = get_app_user(request.user)
-    
+
     Comments.objects.create(post_id = post, creator = author, comment_content=content)
-    
     return HttpResponse("Posted", status = 201)
 
 @csrf_exempt
 def hideComment(request):
+
     if not request.user.is_authenticated or not request.user.is_staff:
         return HttpResponse("Unauthorized", status = 401)
     if request.method != "POST":
         return HttpResponseNotAllowed(["POST"])
+    
     comment_id = request.POST.get("comment_id", "")
     reason = request.POST.get("reason", "")
     comment = Comments.objects.get(pk = comment_id)
@@ -134,14 +135,14 @@ def hidePost(request):
     if request.method != "POST":
         return HttpResponseNotAllowed(["POST"])
     if not request.user.is_authenticated or not request.user.is_staff:
-        return HttpResponse("Unauthorized", status = 401)
+        return HttpResponse("Unauthorized", status=401)
     post_id = request.POST.get("post_id", "")
-    post_reason = request.POST.get("reason", "")
-    post = Post.objects.get(pk = post_id)
+    reason = request.POST.get("reason", "") 
+    post = Post.objects.get(pk=post_id)
     post.censored = True
-    post.censored_reason = post_reason
+    post.censored_reason = reason
     post.save()
-    return HttpResponse("Hidden", status = 200)
+    return HttpResponse("Hidden", status=200)
 
 @csrf_exempt
 def dumpFeed(request):
@@ -150,46 +151,34 @@ def dumpFeed(request):
     if not request.user.is_authenticated:
         return HttpResponse("Unauthorized", status = 401)
     
-    app_user = get_app_user(request.user)
-    is_staff = request.user.is_staff
-    
+    viewer = get_app_user(request.user)
     posts = Post.objects.all().order_by("post_id")
     obj = []
+
     for post in posts:
-        if post.censored:
-            if is_staff:
-                pass
-            elif post.creator == app_user:
-                pass 
-            else:
-                continue
-
         username = post.creator.user.username
-
         media_obj = post.content_id  
         title = media_obj.title
         text  = media_obj.content_text
+        if post.censored:
+            if not(request.user.is_staff or post.creator == viewer):
+                continue
 
-        post_comments = (Comments.objects.filter(post_id=post.post_id).order_by("comment_id"))
+
+        post_comments = Comments.objects.filter(post_id=post).order_by("-add_time")
 
         comments_data = []
         for comment in post_comments:
+            content = comment.comment_content
             if comment.censored:
-                if request.user.is_staff:
-                    content = comment.comment_content
-                elif comment.creator == app_user:
-                    content = comment.comment_content
-                else:
+                if not(request.user.is_staff or comment.creator == viewer):
                     content = "This comment has been removed"
-            else:
-                content = comment.comment_content
-
+    
             comments_data.append({
                 "id": comment.comment_id,
                 "content": content,
                 "creator": comment.creator.user.username,
                 "time": comment.add_time.strftime("%Y-%m-%d %H:%M"),
-                "Comment_Content": content,
             })
 
         obj.append({
@@ -197,7 +186,7 @@ def dumpFeed(request):
             "username": username,
             "date": post.add_time.strftime("%Y-%m-%d %H:%M"),
             "title": title,
-            "text": text,
+            "content": text,
             "comments": comments_data,
             })
     return JsonResponse(obj, safe=False)
@@ -209,24 +198,19 @@ def feed(request):
     if not request.user.is_authenticated:
         return HttpResponse("Unauthorized", status = 401)
     
-    app_user = get_app_user(request.user)
+    viewer = get_app_user(request.user)
     posts = Post.objects.all().order_by("post_id")
     obj = []
 
     for post in posts:
         username = post.creator.user.username
         if post.censored:
-            if request.user.is_staff:
-                pass
-            elif post.creator == app_user:
-                pass 
-            else:
+            if not(request.user.is_staff or post.creator == viewer):
                 continue
 
         media_obj = post.content_id 
         text  = media_obj.content_text
         truncated = text[:100] + ("..." if len(text) > 100 else "")
-
 
         obj.append({
             "id": post.post_id,
@@ -245,7 +229,7 @@ def post_id(request, post_id):
     if not request.user.is_authenticated:
         return HttpResponse("Unauthorized", status = 401)
     
-    app_user = get_app_user(request.user)
+    app_user = request.user
 
     try:
         post = Post.objects.get(pk=post_id)
