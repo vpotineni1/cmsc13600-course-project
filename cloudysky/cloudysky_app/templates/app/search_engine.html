@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+
+    <style>
+        body {
+            background-color: skyblue;
+            font-size: 20px;
+        }
+        label { 
+            display: inline-block;
+            width: 150px;
+            vertical-align: top;
+        } 
+
+        input {
+            height: 30px;
+            width: 200px;
+        } 
+    </style>
+
+{% block content %}
+<div style="text-align:center;">
+    <h2>Search</h2>
+    <form method="get">
+        <label for= "q">Search Query:</label>
+        <input type="text" id="q" name="q" value="{{ query }}"> <br>
+        <button type="submit">Submit</button>
+    </form>
+    <img src="https://cdn-icons-png.flaticon.com/512/704/704794.png" width="500">
+</div>
+
+    {% if query %}
+        <h3> Results for "{{ query }}" </h3>
+
+        <h4>Posts</h4>
+        {% if posts %}
+            {% for p in posts %}
+                <p>
+                    {{p.id}}<br>
+                    {{p.title}}<br>
+                    {{p.text}}<br>
+                    {{p.username}}<br>
+                    {{p.date}}<br>
+                </p>
+            {% endfor %}
+        {% else %}
+            <p> No Results Found.</p>
+        {% endif %} 
+
+        <h4>Comments</h4>
+        {% if comments %}
+            {% for c in comments %}
+                <p>
+                    {{c.id}}<br>
+                    {{c.Comment_Creator}}<br>
+                    {{c.content}}<br>
+                    {{c.date}}<br>
+                </p>
+            {% endfor %}
+        {% else %}
+            <p> No Results Found.</p>
+        {% endif %}
+    {% endif %}
+{% endblock %}
+    
+
+

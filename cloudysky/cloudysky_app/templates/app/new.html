@@ -4,6 +4,19 @@
     <title>Sign Up</title>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; }
+
+        label {
+        display: inline-block;
+        width: 120px;
+        font-weight: bold;
+        }
+
+        input {
+        width: 220px;
+        height: 28px;
+        margin-bottom: 12px;
+        }
+
     </style>
 </head>
 
@@ -18,7 +31,7 @@
             <input type="email" id="email" name="email"><br>
             <label for="password">Password:</label>
             <input type="password" id="password" name="password"><br>
-            <p>Is Admin?</p>
+            <p><b>Is Admin?</b></p>
             <label><input type = "radio" name = "is_admin" value = "0" checked> 
                 No
             </label>
