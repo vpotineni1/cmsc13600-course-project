@@ -6,6 +6,7 @@
         body {
             background-color: skyblue;
             font-size: 20px;
+            text-align: center;
         }
         label { 
             display: inline-block;
@@ -21,7 +22,17 @@
         textarea {
             height: 30px;
             width: 202px;
-        }
+        } 
+
+        .create-button {
+        background-color: green;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        font-size: 18px;
+        margin-bottom: 20px;
+        } 
+
     </style>
 
 </head>
@@ -34,7 +45,7 @@
         <input type="text" id="post_id" name="post_id"><br><br>
         <label for="content">Content:</label>
         <textarea id="content" name="content"></textarea><br>
-        <button type="submit">Create Comment</button>
+        <button type="submit" class="create-button"</button>Create Comment</button>
     </form>
     <img src="https://cdn-icons-png.flaticon.com/512/704/704794.png" width="500">
 </div>

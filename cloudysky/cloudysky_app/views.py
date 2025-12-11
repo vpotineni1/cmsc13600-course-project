@@ -232,6 +232,36 @@ def feed(request):
             })
     return JsonResponse(obj, safe=False)
 
+@csrf_exempt
+def feed_page(request):
+    if request.method != "GET":
+        return HttpResponseNotAllowed(["GET"])
+    if not request.user.is_authenticated:
+        return HttpResponse("Unauthorized", status = 401)
+    
+    viewer = get_app_user(request.user)
+    posts = Post.objects.all().order_by("post_id")
+    obj = []
+
+    for post in posts:
+        username = post.creator.user.username
+        if post.censored:
+            if not(request.user.is_staff or post.creator == viewer):
+                continue
+
+        media_obj = post.content_id 
+        text  = media_obj.content_text
+        truncated = text[:100] + ("..." if len(text) > 100 else "")
+
+        obj.append({
+            "id": post.post_id,
+            "username": username,
+            "date": post.add_time.strftime("%Y-%m-%d %H:%M"),
+            "title": media_obj.title,
+            "Preview": truncated,
+            })
+    return render(request, "app/feed.html", {"posts": obj})
+
         
 @csrf_exempt
 def post_id(request, post_id):

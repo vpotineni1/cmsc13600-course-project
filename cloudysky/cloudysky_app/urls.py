@@ -23,6 +23,8 @@ urlpatterns = [
     path("dumpFeed/", views.dumpFeed, name = 'dumpFeed'),
     path("dumpFeed", views.dumpFeed, name = 'dumpFeed'),
     path("feed", views.feed, name = 'feed'),
+    path("feedPage/", views.feed_page, name="feed_page"),
+    path("feedPage", views.feed_page, name="feed_page"),
     path("post/<int:post_id>", views.post_id, name = 'post_id'),
     path("search_engine", views.search_engine, name = 'search_engine'),
 ]
