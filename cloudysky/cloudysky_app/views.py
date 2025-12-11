@@ -277,3 +277,55 @@ def post_id(request, post_id):
             "Comment_Content": content,
         })
     return JsonResponse({"post": posts, "comments": obj,})
+
+
+@csrf_exempt
+def search_engine(request):
+    if request.method != "GET":
+        return HttpResponseNotAllowed(["GET"])
+    if not request.user.is_authenticated:
+        return HttpResponse("Unauthorized", status = 401)
+    query = request.GET.get("q","").strip()
+    words = [word for word in query.split() if word]
+
+    post_search_results = []
+    comment_search_results = []
+
+    if words:
+        posts = Post.objects.all().order_by("post_id")
+        for post in posts:
+            media_obj = post.content_id 
+            text  = media_obj.content_text
+            title = media_obj.title
+
+            for word in words:
+                if (word in text) or (word in title):
+                    post_search_results.append({
+                        "id": post.post_id,
+                        "username": post.creator.user.username,
+                        "date": post.add_time.strftime("%Y-%m-%d %H:%M"),
+                        "title": title,
+                        "text": text,
+                    })
+                    break
+
+        comments = (Comments.objects.all().order_by("comment_id"))
+        for comment in comments:
+            content = comment.comment_content
+            content_lower = content.lower()
+            for word in words:
+                if (word in content_lower):
+                    comment_search_results.append({
+                        "id": comment.comment_id,
+                        "Comment_Creator": comment.creator.user.username,
+                        "date": comment.add_time.strftime("%Y-%m-%d %H:%M"),
+                        "content":content,
+                        })
+                    break
+    return render(request, 'app/search_engine.html',
+        {
+            "query" : query,
+            "posts" : post_search_results,
+            "comments": comment_search_results,
+        }
+    )
