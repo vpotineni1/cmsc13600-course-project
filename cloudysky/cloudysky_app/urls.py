@@ -24,6 +24,7 @@ urlpatterns = [
     path("dumpFeed", views.dumpFeed, name = 'dumpFeed'),
     path("feed", views.feed, name = 'feed'),
     path("post/<int:post_id>", views.post_id, name = 'post_id'),
+    path("search_engine", views.search_engine, name = 'search_engine'),
 ]
 
 
