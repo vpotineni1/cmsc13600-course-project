@@ -1,6 +1,30 @@
 
 {% block content %}
-  <h2>Login</h2>
+<div style="text-align:center;">
+  <h2>Login</h2> 
+
+    <style>
+        body {
+            background-color: skyblue;
+            font-size: 20px;
+        }
+        label { 
+            display: inline-block;
+            width: 90px;
+            vertical-align: top;
+        } 
+
+        input {
+            height: 30px;
+            width: 200px;
+        } 
+
+        textarea {
+            height: 30px;
+            width: 202px;
+        }
+    </style>
+
   {% if error %}
     <p class="text-red-500 mb-4">{{ error }}</p>
   {% endif %}
@@ -11,7 +35,8 @@
     <input type="text" id="user_name" name="user_name"><br>
     <label for="password">Password:</label>
     <input type="password" id="password" name="password"><br>
-
     <button type="submit">Login</button>
   </form>
+  <img src="https://cdn-icons-png.flaticon.com/512/704/704794.png" width="500">
+</div>
 {% endblock %}
