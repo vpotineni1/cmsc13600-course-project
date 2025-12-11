@@ -160,25 +160,35 @@ def dumpFeed(request):
         media_obj = post.content_id  
         title = media_obj.title
         text  = media_obj.content_text
+
+
+        post_reason = None
+
         if post.censored:
             if not(request.user.is_staff or post.creator == viewer):
                 continue
-
+            if post.censored_reason:
+                post_reason = post.censored_reason
 
         post_comments = Comments.objects.filter(post_id=post).order_by("-add_time")
 
         comments_data = []
         for comment in post_comments:
             content = comment.comment_content
+            comment_reason = None
             if comment.censored:
                 if not(request.user.is_staff or comment.creator == viewer):
                     content = "This comment has been removed"
+                else:
+                    if comment.censored_reason:
+                        comment_reason = comment.censored_reason
     
             comments_data.append({
                 "id": comment.comment_id,
                 "content": content,
                 "creator": comment.creator.user.username,
                 "time": comment.add_time.strftime("%Y-%m-%d %H:%M"),
+                "reason": comment_reason,
             })
 
         obj.append({
@@ -188,6 +198,7 @@ def dumpFeed(request):
             "title": title,
             "content": text,
             "comments": comments_data,
+            "reason": post_reason,
             })
     return JsonResponse(obj, safe=False)
 
